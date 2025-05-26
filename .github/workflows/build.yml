@@ -24,13 +24,25 @@ jobs:
         python-version: ${{ matrix.python-version }}
         architecture: ${{ matrix.architecture }}
     
-    - name: Install dependencies
+    - name: Install Mamba
       shell: pwsh
       run: |
-        python -m pip install --upgrade pip
+        $env:CONDA_DIR = "$env:RUNNER_TEMP\mambaforge"
+        $env:CONDA_EXE = "$env:CONDA_DIR\Scripts\mamba.exe"
+        $env:PATH = "$env:CONDA_DIR\Scripts;$env:CONDA_DIR\Library\bin;$env:PATH"
+        Invoke-WebRequest -Uri "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Windows-x86_64.exe" -OutFile "mambaforge.exe"
+        Start-Process -FilePath "mambaforge.exe" -ArgumentList "/S /RegisterPython=0 /AddToPath=0 /D=$env:CONDA_DIR" -Wait
+        mamba init powershell
+        mamba update -y mamba
+    
+    - name: Install dependencies with Mamba
+      shell: pwsh
+      run: |
         if ("${{ matrix.qt-framework }}" -eq "pyqt5") {
+          mamba install -y -c conda-forge pyqt=5 nuitka
           pip install -r requirements.txt
         } else {
+          mamba install -y -c conda-forge pyside=5 nuitka
           pip install -r requirements-pyside5.txt
         }
     
