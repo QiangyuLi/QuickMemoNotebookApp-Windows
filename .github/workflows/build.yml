@@ -37,8 +37,8 @@ jobs:
       shell: pwsh
       run: |
         python -m pip install --upgrade pip
-        # Install PyQt6 using pre-built wheels
-        pip install --only-binary :all: PyQt6>=6.4.0
+        # Install PySide6 using pre-built wheels
+        pip install --only-binary :all: PySide6>=6.4.0
         # Install other dependencies
         pip install -r requirements.txt
     
@@ -59,7 +59,7 @@ jobs:
       shell: pwsh
       run: |
         # Build with Nuitka
-        python -m nuitka --standalone --windows-disable-console --windows-icon-from-ico=assets/icon.ico --include-package=PyQt6 --include-package=keyboard --include-package=pynput --include-package=python-dotenv --output-dir=dist src/main.py
+        python -m nuitka --standalone --windows-console-mode=disable --windows-icon-from-ico=assets/icon.ico --include-package=PySide6 --include-package=keyboard --include-package=pynput --include-package=python-dotenv --output-dir=dist src/main.py
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Nuitka build failed"
             exit 1

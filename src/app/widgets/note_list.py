@@ -1,10 +1,10 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton
-from PyQt6.QtCore import pyqtSignal
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QListWidget, QPushButton
+from PySide6.QtCore import Signal
 from ..models.note import Note
 from ..utils.storage import get_all_notes
 
 class NoteList(QWidget):
-    note_selected = pyqtSignal(Note)
+    note_selected = Signal(Note)
     
     def __init__(self):
         super().__init__()

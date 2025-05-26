@@ -1,5 +1,5 @@
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QKeySequence, QShortcut
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QKeySequence, QShortcut
 from ..windows.main_window import MainWindow
 
 def setup_shortcuts(window: MainWindow) -> None:

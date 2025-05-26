@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout
-from PyQt6.QtCore import Qt
+from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout
+from PySide6.QtCore import Qt
 from ..widgets.note_editor import NoteEditor
 from ..widgets.note_list import NoteList
 from ..utils.shortcuts import setup_shortcuts
