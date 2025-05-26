@@ -1,0 +1,14 @@
+# Core dependencies
+PySide5>=5.15.2
+keyboard>=0.13.5
+pynput>=1.7.6
+python-dotenv>=1.0.0
+
+# Development dependencies
+pytest>=7.3.1
+black>=23.3.0
+flake8>=6.0.0
+nuitka>=1.9.7
+pyinstaller>=6.3.0
+ordered-set>=4.1.0  # Required by Nuitka
+zstandard>=0.21.0  # Required by Nuitka 
