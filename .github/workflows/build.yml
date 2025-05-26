@@ -13,7 +13,6 @@ jobs:
       matrix:
         python-version: [3.8]
         qt-framework: [pyqt5, pyside5]
-        builder: [nuitka, pyinstaller]
         architecture: [x86, x64]
 
     steps:
@@ -36,7 +35,6 @@ jobs:
         }
     
     - name: Build with Nuitka
-      if: matrix.builder == 'nuitka'
       shell: pwsh
       run: |
         if ("${{ matrix.qt-framework }}" -eq "pyqt5") {
@@ -48,21 +46,8 @@ jobs:
         7z a -tzip ../../QuickMemo-${{ matrix.qt-framework }}-${{ matrix.architecture }}-nuitka.zip *
       continue-on-error: true
     
-    - name: Build with PyInstaller
-      if: matrix.builder == 'pyinstaller'
-      shell: pwsh
-      run: |
-        if ("${{ matrix.qt-framework }}" -eq "pyqt5") {
-          pyinstaller --clean --name QuickMemo-PyQt5 --windowed --hidden-import PyQt5.sip src/main.py
-        } else {
-          pyinstaller --clean --name QuickMemo-PySide5 --windowed --hidden-import PySide5.sip src-pyside5/main.py
-        }
-        cd dist
-        7z a -tzip ../../QuickMemo-${{ matrix.qt-framework }}-${{ matrix.architecture }}-pyinstaller.zip *
-      continue-on-error: true
-    
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: QuickMemo-${{ matrix.qt-framework }}-${{ matrix.architecture }}-${{ matrix.builder }}
-        path: QuickMemo-${{ matrix.qt-framework }}-${{ matrix.architecture }}-${{ matrix.builder }}.zip 
+        name: QuickMemo-${{ matrix.qt-framework }}-${{ matrix.architecture }}
+        path: QuickMemo-${{ matrix.qt-framework }}-${{ matrix.architecture }}-nuitka.zip 
