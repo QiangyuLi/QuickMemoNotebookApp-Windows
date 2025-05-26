@@ -58,9 +58,10 @@ jobs:
     - name: Build executable
       shell: pwsh
       run: |
-        pyinstaller --clean quickmemo.spec
+        # Build with Nuitka
+        python -m nuitka --standalone --windows-disable-console --windows-icon-from-ico=assets/icon.ico --include-package=PyQt6 --include-package=keyboard --include-package=pynput --include-package=python-dotenv --output-dir=dist src/main.py
         if ($LASTEXITCODE -ne 0) {
-            Write-Error "PyInstaller build failed"
+            Write-Error "Nuitka build failed"
             exit 1
         }
     
@@ -72,11 +73,14 @@ jobs:
             exit 1
         }
         cd dist
-        if (!(Test-Path -Path "QuickMemo.exe")) {
-            Write-Error "QuickMemo.exe not found"
+        if (!(Test-Path -Path "main.dist")) {
+            Write-Error "main.dist directory not found"
             exit 1
         }
-        7z a -tzip ../${{ matrix.artifact-name }}.zip QuickMemo.exe
+        # Rename the executable
+        Rename-Item -Path "main.dist/main.exe" -NewName "QuickMemo.exe" -Force
+        # Create ZIP archive
+        7z a -tzip ../${{ matrix.artifact-name }}.zip main.dist/*
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Failed to create ZIP archive"
             exit 1
