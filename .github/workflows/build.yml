@@ -13,6 +13,7 @@ jobs:
       matrix:
         python-version: [3.8]
         architecture: [x86, x64]
+        builder: [nuitka, pyinstaller]
         include:
           - architecture: x86
             python-arch: 32
@@ -37,8 +38,8 @@ jobs:
       shell: pwsh
       run: |
         python -m pip install --upgrade pip
-        # Install PySide6 using pre-built wheels
-        pip install --only-binary :all: PySide6>=6.4.0
+        # Install PyQt5 using pre-built wheels
+        pip install --only-binary :all: PyQt5>=5.15.9
         # Install other dependencies
         pip install -r requirements.txt
     
@@ -55,41 +56,48 @@ jobs:
         $iconContent = [Convert]::FromBase64String("iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAB8SURBVDiNY2AYBYMRMDIyMjAyMjL8//+f4f///wz//v1j+P//P8P///8Z/v//z/D//3+G////M/z//5/h////DP///2f4//8/w////xn+////H4gZGBgYGBkZGRgZGRkYGRkZGBkZGRgZGRkYGRkZGBkZGRgZGRkYGRkZGBkZGRgBANQcD0XqXhQAAAAASUVORK5CYII=")
         [System.IO.File]::WriteAllBytes("assets/icon.ico", $iconContent)
     
-    - name: Build executable
+    - name: Build with Nuitka
+      if: matrix.builder == 'nuitka'
       shell: pwsh
       run: |
         # Build with Nuitka
-        python -m nuitka --standalone --windows-console-mode=disable --windows-icon-from-ico=assets/icon.ico --include-package=PySide6 --include-package=keyboard --include-package=pynput --include-package=python-dotenv --output-dir=dist src/main.py
+        python -m nuitka --standalone --windows-console-mode=disable --windows-icon-from-ico=assets/icon.ico --include-package=PyQt5 --include-package=keyboard --include-package=pynput --include-package=python-dotenv --output-dir=dist src/main.py
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Nuitka build failed"
             exit 1
         }
+        # Rename the executable
+        Rename-Item -Path "dist/main.dist/main.exe" -NewName "QuickMemo.exe" -Force
+        # Create ZIP archive
+        7z a -tzip ../${{ matrix.artifact-name }}-nuitka.zip dist/main.dist/*
     
-    - name: Create release archive
+    - name: Build with PyInstaller
+      if: matrix.builder == 'pyinstaller'
       shell: pwsh
       run: |
-        if (!(Test-Path -Path "dist")) {
-            Write-Error "dist directory not found"
-            exit 1
-        }
-        cd dist
-        if (!(Test-Path -Path "main.dist")) {
-            Write-Error "main.dist directory not found"
-            exit 1
-        }
-        # Rename the executable
-        Rename-Item -Path "main.dist/main.exe" -NewName "QuickMemo.exe" -Force
-        # Create ZIP archive
-        7z a -tzip ../${{ matrix.artifact-name }}.zip main.dist/*
+        # Build with PyInstaller
+        pyinstaller --clean quickmemo.spec
         if ($LASTEXITCODE -ne 0) {
-            Write-Error "Failed to create ZIP archive"
+            Write-Error "PyInstaller build failed"
             exit 1
         }
+        # Create ZIP archive
+        7z a -tzip ../${{ matrix.artifact-name }}-pyinstaller.zip dist/QuickMemo.exe
     
-    - name: Upload artifact
+    - name: Upload Nuitka artifact
+      if: matrix.builder == 'nuitka'
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.artifact-name }}
-        path: ${{ matrix.artifact-name }}.zip
+        name: ${{ matrix.artifact-name }}-nuitka
+        path: ${{ matrix.artifact-name }}-nuitka.zip
+        retention-days: 5
+        if-no-files-found: error
+    
+    - name: Upload PyInstaller artifact
+      if: matrix.builder == 'pyinstaller'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact-name }}-pyinstaller
+        path: ${{ matrix.artifact-name }}-pyinstaller.zip
         retention-days: 5
         if-no-files-found: error 
