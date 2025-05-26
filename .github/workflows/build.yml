@@ -24,10 +24,11 @@ jobs:
     runs-on: windows-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v4
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
         architecture: ${{ matrix.architecture }}
@@ -38,25 +39,45 @@ jobs:
         pip install -r requirements.txt
     
     - name: Create assets directory
-      run: mkdir assets
+      run: |
+        if (!(Test-Path -Path "assets")) {
+            New-Item -ItemType Directory -Path "assets"
+        }
     
     - name: Create placeholder icon
       run: |
-        # Create a simple placeholder icon (you should replace this with your actual icon)
-        echo "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAB8SURBVDiNY2AYBYMRMDIyMjAyMjL8//+f4f///wz//v1j+P//P8P///8Z/v//z/D//3+G////M/z//5/h////DP///2f4//8/w////xn+////H4gZGBgYGBkZGRgZGRkYGRkZGBkZGRgZGRkYGRkZGBkZGRgZGRkYGRkZGBkZGRgBANQcD0XqXhQAAAAASUVORK5CYII=" | base64 -d > assets/icon.ico
+        $iconContent = [Convert]::FromBase64String("iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAB8SURBVDiNY2AYBYMRMDIyMjAyMjL8//+f4f///wz//v1j+P//P8P///8Z/v//z/D//3+G////M/z//5/h////DP///2f4//8/w////xn+////H4gZGBgYGBkZGRgZGRkYGRkZGBkZGRgZGRkYGRkZGBkZGRgZGRkYGRkZGBkZGRgBANQcD0XqXhQAAAAASUVORK5CYII=")
+        [System.IO.File]::WriteAllBytes("assets/icon.ico", $iconContent)
     
     - name: Build executable
       run: |
         pyinstaller --clean quickmemo.spec
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "PyInstaller build failed"
+            exit 1
+        }
     
     - name: Create release archive
       run: |
+        if (!(Test-Path -Path "dist")) {
+            Write-Error "dist directory not found"
+            exit 1
+        }
         cd dist
+        if (!(Test-Path -Path "QuickMemo.exe")) {
+            Write-Error "QuickMemo.exe not found"
+            exit 1
+        }
         7z a -tzip ../${{ matrix.artifact-name }}.zip QuickMemo.exe
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to create ZIP archive"
+            exit 1
+        }
     
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.artifact-name }}
         path: ${{ matrix.artifact-name }}.zip
-        retention-days: 5 
+        retention-days: 5
+        if-no-files-found: error 
