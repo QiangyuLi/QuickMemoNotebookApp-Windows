@@ -1,0 +1,1 @@
+"""Window classes for the QuickMemo application.""" 

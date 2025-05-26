@@ -1,0 +1,1 @@
+"""Custom widgets for the QuickMemo application.""" 
