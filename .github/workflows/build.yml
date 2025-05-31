@@ -33,6 +33,7 @@ jobs:
         else
           pip install -r requirements-pyside5.txt
         fi
+      shell: bash
 
     - name: Build installer with pynsist
       run: |
@@ -42,7 +43,8 @@ jobs:
           cp installer-pyside5.cfg installer.cfg
         fi
         pynsist installer.cfg
-
+      shell: bash
+      
     - name: Archive installer
       run: |
         mkdir -p dist
