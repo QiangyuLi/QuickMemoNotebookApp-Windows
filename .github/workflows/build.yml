@@ -1,4 +1,4 @@
-name: Build QuickMemo
+name: Build QuickMemo (Pynsist)
 
 on:
   push:
@@ -17,49 +17,39 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
         architecture: ${{ matrix.architecture }}
-    
-    - name: Install Miniconda
-      shell: pwsh
+
+    - name: Install dependencies
       run: |
-        $env:CONDA_DIR = "$env:RUNNER_TEMP\miniconda3"
-        $env:CONDA_EXE = "$env:CONDA_DIR\Scripts\conda.exe"
-        $env:PATH = "$env:CONDA_DIR\Scripts;$env:CONDA_DIR\Library\bin;$env:PATH"
-        Invoke-WebRequest -Uri "https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe" -OutFile "miniconda.exe"
-        Start-Process -FilePath "miniconda.exe" -ArgumentList "/S /RegisterPython=0 /AddToPath=0 /D=$env:CONDA_DIR" -Wait
-        conda init powershell
-        conda update -y conda
-    
-    - name: Install dependencies with Conda
-      shell: pwsh
-      run: |
-        if ("${{ matrix.qt-framework }}" -eq "pyqt5") {
-          conda install -y -c conda-forge pyqt=5 nuitka
+        python -m pip install --upgrade pip
+        pip install pynsist
+        if [ "${{ matrix.qt-framework }}" = "pyqt5" ]; then
           pip install -r requirements.txt
-        } else {
-          conda install -y -c conda-forge pyside=5 nuitka
+        else
           pip install -r requirements-pyside5.txt
-        }
-    
-    - name: Build with Nuitka
-      shell: pwsh
+        fi
+
+    - name: Build installer with pynsist
       run: |
-        if ("${{ matrix.qt-framework }}" -eq "pyqt5") {
-          python -m nuitka --standalone --windows-disable-console --include-package=PyQt5 --output-dir=build/nuitka src/main.py
-        } else {
-          python -m nuitka --standalone --windows-disable-console --include-package=PySide5 --output-dir=build/nuitka src-pyside5/main.py
-        }
-        cd build/nuitka
-        7z a -tzip ../../QuickMemo-${{ matrix.qt-framework }}-${{ matrix.architecture }}-nuitka.zip *
-      continue-on-error: true
-    
+        if [ "${{ matrix.qt-framework }}" = "pyqt5" ]; then
+          cp installer-pyqt5.cfg installer.cfg
+        else
+          cp installer-pyside5.cfg installer.cfg
+        fi
+        pynsist installer.cfg
+
+    - name: Archive installer
+      run: |
+        mkdir -p dist
+        cp build/nsis/QuickMemoInstaller.exe dist/QuickMemo-${{ matrix.qt-framework }}-${{ matrix.architecture }}.exe
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: QuickMemo-${{ matrix.qt-framework }}-${{ matrix.architecture }}
-        path: QuickMemo-${{ matrix.qt-framework }}-${{ matrix.architecture }}-nuitka.zip 
+        path: dist/QuickMemo-${{ matrix.qt-framework }}-${{ matrix.architecture }}.exe

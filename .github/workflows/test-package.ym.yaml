@@ -1,0 +1,31 @@
+name: Test QuickMemo Installer
+
+on:
+  workflow_run:
+    workflows: ["Build QuickMemo (Pynsist)"]
+    types:
+      - completed
+
+jobs:
+  test-installer:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        qt-framework: [pyqt5, pyside5]
+        architecture: [x86, x64]
+
+    steps:
+    - name: Download installer artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: QuickMemo-${{ matrix.qt-framework }}-${{ matrix.architecture }}
+
+    - name: Install QuickMemo
+      run: |
+        .\QuickMemo-${{ matrix.qt-framework }}-${{ matrix.architecture }}.exe /S
+
+    - name: Run QuickMemo basic test
+      run: |
+        # Example: check if the executable launches and exits
+        Start-Process -FilePath "$Env:ProgramFiles\QuickMemo\QuickMemo.exe" -ArgumentList "--help"
+        Start-Sleep -Seconds 5
