@@ -1,10 +1,10 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTextEdit, QPushButton
-from PyQt5.QtCore import pyqtSignal
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTextEdit, QPushButton
+from PySide6.QtCore import Signal
 from ..models.note import Note
 from ..utils.storage import save_note
 
 class NoteEditor(QWidget):
-    note_saved = pyqtSignal()
+    note_saved = Signal()
     
     def __init__(self):
         super().__init__()

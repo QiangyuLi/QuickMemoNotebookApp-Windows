@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout
-from PyQt5.QtCore import Qt
+from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout
+from PySide6.QtCore import Qt
 from ..widgets.note_editor import NoteEditor
 from ..widgets.note_list import NoteList
 from ..utils.shortcuts import setup_shortcuts
@@ -7,7 +7,7 @@ from ..utils.shortcuts import setup_shortcuts
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("QuickMemo Notebook")
+        self.setWindowTitle("QuickMemo Notebook (PySide6)")
         self.setMinimumSize(800, 600)
         
         # Create central widget and layout

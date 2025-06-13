@@ -1,5 +1,5 @@
-from PySide5.QtCore import Qt
-from PySide5.QtGui import QKeySequence, QShortcut
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QKeySequence, QShortcut
 
 def setup_shortcuts(window):
     # New note shortcut (Ctrl+N)
